@@ -12,6 +12,11 @@ void AudioCaptureClient::initializeCom() {
     assert(SUCCEEDED(hr));
 }
 
+void AudioCaptureClient::uninitializeCom() {
+    CoUninitialize();
+    //std::cerr << "C++ uninitialized COM" << std::endl;
+}
+
 /* for debugging
 
 std::string ToString(GUID *guid) {
@@ -149,13 +154,11 @@ UINT32 AudioCaptureClient::getBuffer(UINT32 expectedFrameCount, UINT32 maximumFr
 }
 
 void AudioCaptureClient::stopCapture() {
-
     recorderClient->Stop();
     captureService->Release();
     recorderClient->Release();
     recorder->Release();
-
-    CoUninitialize();
+    //std::cerr << "C++ stopped capture" << std::endl;
 }
 
 // ---------------------------------------------
@@ -167,6 +170,10 @@ void *createCaptureClient() {
 
 void initializeCom(void* client) {
   ((AudioCaptureClient*)client)->initializeCom();
+}
+
+void uninitializeCom(void* client) {
+  ((AudioCaptureClient*)client)->uninitializeCom();
 }
 
 void startCapture(void *client) {

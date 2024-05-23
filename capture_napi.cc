@@ -36,6 +36,7 @@ napi_value CreateCaptureClient(napi_env env, napi_callback_info info) {
 // NOTE: do not call InitializeCom from electron app because electron already
 // initializes COM by itself. only call InitializeCom when testing in a
 // standalone node.js app.
+// https://github.com/electron/electron/issues/37212
 napi_value InitializeCom(napi_env env, napi_callback_info info) {
   size_t argc = 1;
   napi_value args[1];
@@ -63,6 +64,39 @@ napi_value InitializeCom(napi_env env, napi_callback_info info) {
 
   initializeCom(clientPointer);
   //std::cerr << "C++ success in InitializeCom" << std::endl;
+}
+
+// NOTE: do not call UninitializeCom from electron app because electron already
+// initializes COM by itself. only call UninitializeCom when testing in a
+// standalone node.js app.
+// https://github.com/electron/electron/issues/37212
+napi_value UninitializeCom(napi_env env, napi_callback_info info) {
+  size_t argc = 1;
+  napi_value args[1];
+  napi_status status;
+
+  status = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  if (status != napi_ok) {
+    std::cerr << "C++ error in UninitializeCom: could not get args" << std::endl;
+    return nullptr;
+  }
+
+  napi_valuetype value_type;
+  status = napi_typeof(env, args[0], &value_type);
+  if (status != napi_ok || value_type != napi_external) {
+    std::cerr << "C++ error in UninitializeCom: could not get args[0]" << std::endl;
+    return nullptr;
+  }
+
+  void* clientPointer;
+  status = napi_get_value_external(env, args[0], &clientPointer);
+  if (status != napi_ok) {
+    std::cerr << "C++ error in UninitializeCom: could not get pointer value" << std::endl;
+    return nullptr;
+  }
+
+  uninitializeCom(clientPointer);
+  std::cerr << "C++ success in uninitializeCom" << std::endl;
 }
 
 
@@ -357,6 +391,11 @@ napi_value init(napi_env env, napi_value exports) {
   status = napi_create_function(env, nullptr, 0, InitializeCom, nullptr, &fn);
   if (status != napi_ok) return nullptr;
   status = napi_set_named_property(env, exports, "InitializeCom", fn);
+  if (status != napi_ok) return nullptr;
+
+  status = napi_create_function(env, nullptr, 0, UninitializeCom, nullptr, &fn);
+  if (status != napi_ok) return nullptr;
+  status = napi_set_named_property(env, exports, "UninitializeCom", fn);
   if (status != napi_ok) return nullptr;
 
   status = napi_create_function(env, nullptr, 0, StartCapture, nullptr, &fn);

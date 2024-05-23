@@ -36,6 +36,8 @@ let startCapture = (
             //console.log('JS start interval');
             if(continuationObject.continue == false) {
                 console.log('JS audio capture loop finished');
+                addon.StopCapture(c);
+                addon.UninitializeCom(c);
                 clearInterval(interval);
             } else {
                 nextPacketSize = addon.GetNextPacketSize(c);

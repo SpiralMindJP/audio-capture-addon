@@ -38,6 +38,7 @@ private:
 
 public:
     void initializeCom();
+    void uninitializeCom();
     void startCapture();
     AudioCaptureFormat getAudioFormat();
     int getBytesPerSample();
@@ -49,6 +50,7 @@ public:
 extern "C" {
     void *createCaptureClient();
     void initializeCom(void* client); // must not be called from Electron app because Electron already initializes COM
+    void uninitializeCom(void* client); // must not be called from Electron app because Electron already uninitializes COM
     void startCapture(void* client);
     AudioCaptureFormat getAudioFormat(void* client);
     UINT32 getNextPacketSize(void* client);
